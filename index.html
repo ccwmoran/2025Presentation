@@ -156,18 +156,19 @@
     }
     
     .quote {
-      font-family: 'Ma Shan Zheng', cursive;
-      font-size: 1.75rem;
+      font-family: 'Arial', sans-serif;
+      font-size: 1.25rem;
       line-height: 1.5;
       max-width: 600px;
       margin: 0 auto;
       text-shadow: 0 2px 10px rgba(0, 0, 0, 0.2);
-      letter-spacing: 0.05em;
+      opacity: 0.9;
+      font-style: italic;
     }
     
     @media (min-width: 768px) {
       .quote {
-        font-size: 2.25rem;
+        font-size: 1.5rem;
       }
     }
     
@@ -300,13 +301,42 @@
     .tech-support {
       font-size: 1rem;
       color: rgba(148, 163, 184, 0.8);
-      margin-top: 4rem;
+      margin-top: 1rem;
     }
     
     @media (min-width: 768px) {
       .tech-support {
         font-size: 1.25rem;
       }
+    }
+    
+    .share-btn {
+      margin-top: 2rem;
+    }
+    
+    .share-container {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      height: 100%;
+      width: 100%;
+      max-width: 800px;
+    }
+    
+    #shareCanvas {
+      max-width: 100%;
+      border-radius: 16px;
+      box-shadow: 0 20px 25px -5px rgba(0, 0, 0, 0.5);
+      margin-bottom: 1.5rem;
+    }
+    
+    .download-instruction {
+      font-size: 0.9rem;
+      color: rgba(255, 255, 255, 0.7);
+      margin-top: 0.5rem;
+      max-width: 400px;
+      text-align: center;
     }
     
     .fade-in {
@@ -406,13 +436,23 @@
     <div class="slide hidden" id="slide-8">
       <div class="celebration-bg" id="confettiContainer"></div>
       <div class="celebration-text fade-in">2025完结撒花🎊，2026你好呀🎉</div>
-      <div class="new-year-text fade-in">祝你跨年快乐！</div>
+      <div class="new-year-text fade-in">祝你新年快乐！</div>
     </div>
     
     <!-- Slide 9: Final -->
     <div class="slide hidden" id="slide-9">
       <h1 class="final-title fade-in">by Morgan</h1>
       <p class="tech-support fade-in">CCWMORAN慕然科技提供技术支持</p>
+      <button class="btn share-btn fade-in" id="shareBtn">生成分享图</button>
+    </div>
+    
+    <!-- Slide 10: Share Image -->
+    <div class="slide hidden" id="slide-10">
+      <div class="share-container fade-in">
+        <canvas id="shareCanvas" width="800" height="1000"></canvas>
+        <button class="btn" id="downloadBtn">保存分享图</button>
+        <p class="download-instruction">如果保存失败请长按图片下载</p>
+      </div>
     </div>
   </div>
   
@@ -452,13 +492,14 @@
     
     // Slide management
     let currentSlide = 0;
-    const totalSlides = 9; // Updated total slides count
+    const totalSlides = 10; // Updated total slides count (0-10)
     const slides = document.querySelectorAll('.slide');
     const pagination = document.getElementById('pagination');
     const progressFill = document.getElementById('progressFill');
     const prevBtn = document.getElementById('prevBtn');
     const nextBtn = document.getElementById('nextBtn');
     const startBtn = document.getElementById('startBtn');
+    const shareBtn = document.getElementById('shareBtn');
     
     // Show initial pagination state
     updatePagination();
@@ -481,6 +522,12 @@
       }
     });
     
+    // Share button handler
+    shareBtn.addEventListener('click', () => {
+      goToSlide(10);
+      drawShareImage();
+    });
+    
     // Go to specific slide
     function goToSlide(slideIndex) {
       // Add fade out animation to current slide
@@ -499,15 +546,15 @@
         // Add fade in animation
         setTimeout(() => {
           slides[currentSlide].classList.add('fade-in');
+          
+          // Special handling for celebration slide
+          if (currentSlide === 8) {
+            createConfetti('confettiContainer', 50);
+          }
         }, 10);
         
         // Update pagination
         updatePagination();
-        
-        // Special handling for celebration slide
-        if (currentSlide === 8) {
-          createConfetti('confettiContainer', 50);
-        }
       }, 500);
     }
     
@@ -516,7 +563,7 @@
       // Show/hide pagination
       pagination.style.display = currentSlide === 0 ? 'none' : 'block';
       
-      // Update progress bar - adjusted for 9 total slides
+      // Update progress bar - adjusted for total slides
       const progress = (currentSlide / totalSlides) * 100;
       progressFill.style.width = `${progress}%`;
       
@@ -527,6 +574,8 @@
       // Update button text
       if (currentSlide === 0) {
         nextBtn.innerHTML = '<span>去看看</span><i data-lucide="chevron-right" class="icon"></i>';
+      } else if (currentSlide === 9) {
+        nextBtn.innerHTML = '<span>生成分享图</span><i data-lucide="chevron-right" class="icon"></i>';
       } else if (currentSlide === totalSlides) {
         nextBtn.innerHTML = '<span>完成</span><i data-lucide="chevron-right" class="icon"></i>';
       } else {
@@ -565,16 +614,81 @@
       }
     }
     
-    // Initialize with proper state
-    document.addEventListener('DOMContentLoaded', () => {
-      // Show pagination for slides after cover
-      if (currentSlide > 0) {
-        pagination.style.display = 'block';
+    // Draw share image on canvas
+    function drawShareImage() {
+      const canvas = document.getElementById('shareCanvas');
+      const ctx = canvas.getContext('2d');
+      const width = canvas.width;
+      const height = canvas.height;
+      
+      // Create gradient background
+      const gradient = ctx.createLinearGradient(0, 0, width, height);
+      gradient.addColorStop(0, '#0c1a33');
+      gradient.addColorStop(0.5, '#0a1428');
+      gradient.addColorStop(1, '#0d1b36');
+      
+      ctx.fillStyle = gradient;
+      ctx.fillRect(0, 0, width, height);
+      
+      // Add decorative circles
+      for (let i = 0; i < 8; i++) {
+        const size = Math.random() * 80 + 40;
+        const x = Math.random() * width;
+        const y = Math.random() * height;
+        const opacity = Math.random() * 0.15 + 0.05;
+        
+        const circleGradient = ctx.createRadialGradient(x, y, 0, x, y, size);
+        circleGradient.addColorStop(0, `rgba(56, 189, 248, ${opacity})`);
+        circleGradient.addColorStop(1, `rgba(99, 102, 241, 0)`);
+        
+        ctx.beginPath();
+        ctx.arc(x, y, size, 0, Math.PI * 2);
+        ctx.fillStyle = circleGradient;
+        ctx.fill();
       }
       
-      // Create initial confetti for celebration slide if needed
-      if (currentSlide === 8) {
-        createConfetti('confettiContainer', 50);
+      // Draw text
+      ctx.textAlign = 'center';
+      
+      // Title text (yellow)
+      ctx.font = 'bold 48px Arial';
+      ctx.fillStyle = '#fbbf24';
+      ctx.fillText('我的2025年度报告', width / 2, height * 0.35);
+      
+      // Subtitle text (white)
+      ctx.font = 'bold 64px Arial';
+      ctx.fillStyle = '#ffffff';
+      ctx.fillText('跨年快乐🎉', width / 2, height * 0.5);
+      
+      // Footer text
+      ctx.font = '20px Arial';
+      ctx.fillStyle = 'rgba(148, 163, 184, 0.8)';
+      ctx.fillText('by CCWMORAN/Morgan', width / 2, height * 0.8);
+    }
+    
+    // Download button handler
+    document.getElementById('downloadBtn').addEventListener('click', () => {
+      const canvas = document.getElementById('shareCanvas');
+      const link = document.createElement('a');
+      link.download = '2025年度报告.png';
+      
+      // Convert canvas to data URL
+      canvas.toBlob(function(blob) {
+        link.href = URL.createObjectURL(blob);
+        link.click();
+        
+        // Cleanup
+        setTimeout(() => {
+          URL.revokeObjectURL(link.href);
+        }, 100);
+      }, 'image/png');
+    });
+    
+    // Initialize with proper state
+    document.addEventListener('DOMContentLoaded', () => {
+      // Draw initial share image
+      if (document.getElementById('shareCanvas')) {
+        drawShareImage();
       }
     });
   </script>
